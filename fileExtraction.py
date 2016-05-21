@@ -8,11 +8,10 @@ logFilesFolder='/Propa_files'
 
 '''path to this file'''
 path=os.path.dirname(os.path.realpath(__file__))
-pathorigin=path
-#/Users/Jared/Dropbox/Auburn/Research/Second_Research/Test_Files
-excelFilePathName='/nondiagopenpyxltest.xlsx'
+pathorigin=path     #used to save workbook in this location
+excelFilePathName='/non_diag_propagatorData.xlsx'
 
-
+#columns for each variable in workbook
 colFileInformation='A'
 colMolecule='B'
 colCharge='C'
@@ -26,7 +25,9 @@ colCFF='J'
 
 def writeDataToExcel(worksheet, row, fileInformation, molecule, charge, multiplicity, basis, nineFive,\
             orbital, eigenValue, ps, cff):
-    print('got here')
+    '''writesDataToExcel takes is called by dataExtract. It takes in the variables found in 
+    data extraction and writes it into the openpyxl workbook'''
+    
     worksheet[colFileInformation+str(row)]=fileInformation
     worksheet[colMolecule+str(row)]=molecule
     worksheet[colCharge+str(row)]=charge
@@ -37,8 +38,6 @@ def writeDataToExcel(worksheet, row, fileInformation, molecule, charge, multipli
     worksheet[colEigenValue+str(row)]=eigenValue
     worksheet[colPS+str(row)]=ps
     worksheet[colCFF+str(row)]=cff
-  
-    #workbook.save(path + excelFilePathName)     #saves file  
         
 def numberOfBasisSets(logarray):
     '''returns a list of the split log arrays by basis set. length is number of basis sets'''
@@ -61,10 +60,15 @@ def numberOfBasisSets(logarray):
 
 
 def dataExtract(path):
-    #prepare excel file first
+    '''Main function in script. Calls other functions. Takes in path of this file and extracts
+    data from the log files folder. Then calls functions above to add data to the openpyxl file'''
+
+    #prepare openpyxl first
     worksheet=workbook.active
     worksheet.title="Data"
+    #creates worksheet Data
     
+    #add headings to each column
     worksheet[colFileInformation+'1']='File'
     worksheet[colMolecule+'1']='Molecule'
     worksheet[colCharge+'1']='Charge'
@@ -77,24 +81,19 @@ def dataExtract(path):
     worksheet[colCFF+'1']='CFF'
     
     row=2
-    #extraction code starts here
+    #extraction from log files starts here
     logFiles=[]
 
     for path, subdirs, files in os.walk(path+logFilesFolder):
         for name in files:
             if os.path.join(path, name)[len(os.path.join(path, name))-4:len(os.path.join(path, name))]=='.log':
                 logFiles.append(os.path.join(path, name))
-    #print(logFiles) 
 
     for currentFile in logFiles:
-        
         log = open(currentFile, 'r').read()
         splitLog = re.split(r'[\\\s]\s*', log)  #splits string with \ (\\), empty space (\s) and = and ,
-    
         fileInformation=currentFile
-        
         firstSplitLog=numberOfBasisSets(splitLog)[0]
-
         nineFiveFound=False
         x=0
         while x<len(firstSplitLog):
@@ -127,8 +126,7 @@ def dataExtract(path):
             #print(splitlog)
 
             x=0
-            while x<len(splitlog):
-                
+            while x<len(splitlog):   
                 if splitlog[x]=='(eV)':
                     eigenValue=splitlog[x+1]
                     orbital=splitlog[x+3][0]
@@ -141,12 +139,11 @@ def dataExtract(path):
                     else:
                         ps=b
                         cff=a
-        
                 x+=1
-
+            #send variables from data extraction to writeDataToExcel
             writeDataToExcel(worksheet, row, fileInformation, molecule, charge, multiplicity, basis, nineFive,\
             orbital, eigenValue, ps, cff)
             
             row+=1
-            
+             
     workbook.save(pathorigin + excelFilePathName)     #saves file
