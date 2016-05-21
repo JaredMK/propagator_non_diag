@@ -1,42 +1,45 @@
 import os
-import xlsxwriter
 import re
+import openpyxl
+workbook = openpyxl.Workbook()  #creates openpyxl workbook
+
+#logFilesFolder is name of folder containing log files 
+logFilesFolder='/Propa_files'
 
 '''path to this file'''
 path=os.path.dirname(os.path.realpath(__file__))
+pathorigin=path
 #/Users/Jared/Dropbox/Auburn/Research/Second_Research/Test_Files
-excelFilePathName='/propagatorData.xlsx'
-logFilesFolder='/Propa_files'
+excelFilePathName='/nondiagopenpyxltest.xlsx'
 
-colFileInformation=0
-colMolecule=1
-colCharge=2
-colMultiplicity=3
-colBasis=4
-colNineFive=5
-colEigenValue=6
-colOrbital=7
-colPS=8
-colCFF=9
+
+colFileInformation='A'
+colMolecule='B'
+colCharge='C'
+colMultiplicity='D'
+colBasis='E'
+colNineFive='F'
+colEigenValue='G'
+colOrbital='H'
+colPS='I'
+colCFF='J'
 
 def writeDataToExcel(worksheet, row, fileInformation, molecule, charge, multiplicity, basis, nineFive,\
             orbital, eigenValue, ps, cff):
-    worksheet.write(row, colFileInformation, fileInformation)
-    worksheet.write(row, colMolecule, molecule)
-    worksheet.write(row, colCharge, charge)
-    worksheet.write(row, colMultiplicity, multiplicity)
-    worksheet.write(row, colBasis, basis)
-    worksheet.write(row, colNineFive, nineFive)   
-    worksheet.write(row, colOrbital, orbital)
-    worksheet.write(row, colEigenValue, eigenValue)
-    worksheet.write(row, colPS, ps)
-    worksheet.write(row, colCFF, cff)
-            
-    
-
-            
-
-
+    print('got here')
+    worksheet[colFileInformation+str(row)]=fileInformation
+    worksheet[colMolecule+str(row)]=molecule
+    worksheet[colCharge+str(row)]=charge
+    worksheet[colMultiplicity+str(row)]=multiplicity
+    worksheet[colBasis+str(row)]=basis
+    worksheet[colNineFive+str(row)]=nineFive
+    worksheet[colOrbital+str(row)]=orbital
+    worksheet[colEigenValue+str(row)]=eigenValue
+    worksheet[colPS+str(row)]=ps
+    worksheet[colCFF+str(row)]=cff
+  
+    #workbook.save(path + excelFilePathName)     #saves file  
+        
 def numberOfBasisSets(logarray):
     '''returns a list of the split log arrays by basis set. length is number of basis sets'''
     commandLocation=[]
@@ -59,22 +62,21 @@ def numberOfBasisSets(logarray):
 
 def dataExtract(path):
     #prepare excel file first
-    workbook = xlsxwriter.Workbook(path + excelFilePathName)
-    worksheet = workbook.add_worksheet('Data')
-    bold = workbook.add_format({'bold': True})
-    row=1
+    worksheet=workbook.active
+    worksheet.title="Data"
     
-    worksheet.write(0, colFileInformation, 'File', bold)
-    worksheet.write(0, colMolecule, 'Molecule', bold)
-    worksheet.write(0, colCharge, 'Charge', bold)
-    worksheet.write(0, colMultiplicity, 'Multiplicity', bold)
-    worksheet.write(0, colBasis, 'Basis', bold)
-    worksheet.write(0, colNineFive, '9/5', bold)   
-    worksheet.write(0, colOrbital, 'Orbital', bold)
-    worksheet.write(0, colEigenValue, 'Eigen Value', bold)
-    worksheet.write(0, colPS, 'polestrength', bold)
-    worksheet.write(0, colCFF, 'CFF', bold)
+    worksheet[colFileInformation+'1']='File'
+    worksheet[colMolecule+'1']='Molecule'
+    worksheet[colCharge+'1']='Charge'
+    worksheet[colMultiplicity+'1']='Multiplicity'
+    worksheet[colBasis+'1']='Basis'
+    worksheet[colNineFive+'1']='9/5'
+    worksheet[colOrbital+'1']='Orbital'
+    worksheet[colEigenValue+'1']='Eigen Value'
+    worksheet[colPS+'1']='polestrength'
+    worksheet[colCFF+'1']='CFF'
     
+    row=2
     #extraction code starts here
     logFiles=[]
 
@@ -118,14 +120,6 @@ def dataExtract(path):
                 nineFive=firstSplitLog[x][s:f]                    
                 nineFiveFound=True
             x+=1
-                
-        '''
-        print('molecule ' + molecule)
-        print('charge ' + charge)
-        print('multiplicity ' + multiplicity)
-        print('basis ' + basis)
-        print('9/5 ' + nineFive)
-        '''
         
         for splitlog in numberOfBasisSets(splitLog)[1:]:
             #NUMBEROFSPLITS will return where in log file it needs to be split for basis sets
@@ -149,14 +143,10 @@ def dataExtract(path):
                         cff=a
         
                 x+=1
-            '''
-            print('eigenvalue ' + eigenValue)
-            print('orbital ' + orbital)
-            print('polestrength ' + str(ps))
-            print('CFF ' + str(cff))
-            '''
+
             writeDataToExcel(worksheet, row, fileInformation, molecule, charge, multiplicity, basis, nineFive,\
             orbital, eigenValue, ps, cff)
             
             row+=1
             
+    workbook.save(pathorigin + excelFilePathName)     #saves file
